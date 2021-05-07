@@ -24,19 +24,89 @@ func prettyJson(input string) (string, error) {
 	return string(pretty), nil
 }
 
+// version that returns value back to javascript caller
+//
+// func jsonWrapper() js.Func {
+// 	jsonFunc := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+// 		if len(args) != 1 {
+// 			return "Invalid no of arguments passed"
+// 		}
+// 		inputJSON := args[0].String()
+// 		fmt.Printf("input %s\n", inputJSON)
+// 		pretty, err := prettyJson(inputJSON)
+// 		if err != nil {
+// 			fmt.Printf("unable to convert to json %s\n", err)
+// 			return err.Error()
+// 		}
+// 		return pretty
+// 	})
+// 	return jsonFunc
+// }
+
+// version that inserts results into DOM element
+// func jsonWrapper() js.Func {
+// 	jsonfunc := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+// 		if len(args) != 1 {
+// 			return "Invalid no of arguments passed"
+// 		}
+// 		jsDoc := js.Global().Get("document")
+// 		if !jsDoc.Truthy() {
+// 			return "Unable to get document object"
+// 		}
+// 		jsonOuputTextArea := jsDoc.Call("getElementById", "jsonoutput")
+// 		if !jsonOuputTextArea.Truthy() {
+// 			return "Unable to get output text area"
+// 		}
+// 		inputJSON := args[0].String()
+// 		fmt.Printf("input %s\n", inputJSON)
+// 		pretty, err := prettyJson(inputJSON)
+// 		if err != nil {
+// 			errStr := fmt.Sprintf("unable to parse JSON. Error %s occurred\n", err)
+// 			return errStr
+// 		}
+// 		jsonOuputTextArea.Set("value", pretty)
+// 		return nil
+// 	})
+
+// 	return jsonfunc
+// }
+
+// version that manipulates DOM and uses and error in map convention
+// to get better js error handling
 func jsonWrapper() js.Func {
-	jsonFunc := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+	jsonfunc := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		if len(args) != 1 {
-			return "Invalid no of arguments passed"
+			result := map[string]interface{}{
+				"error": "Invalid no of arguments passed",
+			}
+			return result
+		}
+		jsDoc := js.Global().Get("document")
+		if !jsDoc.Truthy() {
+			result := map[string]interface{}{
+				"error": "Unable to get document object",
+			}
+			return result
+		}
+		jsonOuputTextArea := jsDoc.Call("getElementById", "jsonoutput")
+		if !jsonOuputTextArea.Truthy() {
+			result := map[string]interface{}{
+				"error": "Unable to get output text area",
+			}
+			return result
 		}
 		inputJSON := args[0].String()
 		fmt.Printf("input %s\n", inputJSON)
 		pretty, err := prettyJson(inputJSON)
 		if err != nil {
-			fmt.Printf("unable to convert to json %s\n", err)
-			return err.Error()
+			errStr := fmt.Sprintf("unable to parse JSON. Error %s occurred\n", err)
+			result := map[string]interface{}{
+				"error": errStr,
+			}
+			return result
 		}
-		return pretty
+		jsonOuputTextArea.Set("value", pretty)
+		return nil
 	})
-	return jsonFunc
+	return jsonfunc
 }
