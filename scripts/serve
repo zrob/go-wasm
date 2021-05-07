@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+set -o errexit
+
+__dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+cd "${__dir}/../cmd/server"
+go run main.go
